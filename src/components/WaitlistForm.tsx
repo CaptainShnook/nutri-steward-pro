@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle, Copy } from 'phosphor-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface FormData {
   problem: string;
@@ -15,6 +17,8 @@ interface FormData {
 const WaitlistForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     problem: '',
     feature: '',
@@ -38,12 +42,59 @@ const WaitlistForm = () => {
     'Something else'
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      setIsSubmitted(true);
+      await handleSubmit();
     }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('waitlist_submissions')
+        .insert({
+          problem: formData.problem,
+          feature: formData.feature,
+          goals: formData.goals,
+          pricing: formData.pricing,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          referral_code: generateReferralCode()
+        });
+
+      if (error) {
+        console.error('Submission error:', error);
+        toast({
+          title: "Submission Failed",
+          description: "There was an error submitting your application. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        setIsSubmitted(true);
+        toast({
+          title: "Successfully Joined!",
+          description: "You've been added to the waitlist. Check your email for confirmation.",
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Submission Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const generateReferralCode = () => {
+    return `${formData.firstName.toLowerCase()}-${Date.now().toString(36)}`;
   };
 
   const handleBack = () => {
@@ -56,8 +107,46 @@ const WaitlistForm = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const copyReferralLink = () => {
-    navigator.clipboard.writeText('https://nutristeward.com/ref/early-access');
+  const copyReferralLink = async () => {
+    const referralCode = generateReferralCode();
+    const referralLink = `https://nutristeward.com/ref/${referralCode}`;
+    
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast({
+        title: "Link Copied!",
+        description: "Your referral link has been copied to clipboard.",
+      });
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const isStepValid = () => {
+    switch (steps[currentStep]) {
+      case 'intro':
+        return true;
+      case 'problem':
+        return formData.problem.trim().length > 0;
+      case 'feature':
+        return formData.feature.trim().length > 0;
+      case 'goals':
+        return formData.goals.trim().length > 0;
+      case 'pricing':
+        return formData.pricing.trim().length > 0;
+      case 'contact':
+        return formData.firstName.trim().length > 0 && 
+               formData.lastName.trim().length > 0 && 
+               formData.email.trim().length > 0 &&
+               /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+      default:
+        return false;
+    }
   };
 
   if (isSubmitted) {
@@ -111,7 +200,10 @@ const WaitlistForm = () => {
             <p className="text-gray-600 mb-8">
               Answer 5 quick questions. Takes less than 60 seconds so we can tailor NutriSteward to your needs.
             </p>
-            <button onClick={handleNext} className="neumorphic-btn inline-flex items-center gap-2">
+            <button 
+              onClick={handleNext} 
+              className="neumorphic-btn inline-flex items-center gap-2"
+            >
               Let's Go <ArrowRight size={16} />
             </button>
           </div>
@@ -158,6 +250,7 @@ const WaitlistForm = () => {
                   type="text"
                   placeholder="Please specify..."
                   className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent mt-3"
+                  onChange={(e) => updateFormData('feature', `Something else: ${e.target.value}`)}
                 />
               )}
             </div>
@@ -209,6 +302,7 @@ const WaitlistForm = () => {
                 onChange={(e) => updateFormData('firstName', e.target.value)}
                 className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="First Name"
+                required
               />
               <input
                 type="text"
@@ -216,6 +310,7 @@ const WaitlistForm = () => {
                 onChange={(e) => updateFormData('lastName', e.target.value)}
                 className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Last Name"
+                required
               />
             </div>
             <input
@@ -224,6 +319,7 @@ const WaitlistForm = () => {
               onChange={(e) => updateFormData('email', e.target.value)}
               className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent mt-4"
               placeholder="Email Address"
+              required
             />
           </div>
         );
@@ -260,6 +356,7 @@ const WaitlistForm = () => {
                 <button 
                   onClick={handleBack}
                   className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  disabled={isSubmitting}
                 >
                   <ArrowLeft size={16} />
                   Back
@@ -267,9 +364,10 @@ const WaitlistForm = () => {
 
                 <button 
                   onClick={handleNext}
-                  className="neumorphic-btn inline-flex items-center gap-2"
+                  disabled={!isStepValid() || isSubmitting}
+                  className="neumorphic-btn inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {currentStep === steps.length - 1 ? 'Submit' : 'Continue'}
+                  {isSubmitting ? 'Submitting...' : (currentStep === steps.length - 1 ? 'Submit' : 'Continue')}
                   <ArrowRight size={16} />
                 </button>
               </div>
