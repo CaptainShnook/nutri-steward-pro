@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Target, Zap, ArrowsClockwise } from 'phosphor-react';
+import { Target, Lightning, ArrowsClockwise } from 'phosphor-react';
 
 const IntroductionSection = () => {
   const features = [
@@ -9,7 +8,7 @@ const IntroductionSection = () => {
       text: 'As precise as MyFitnessPal'
     },
     {
-      icon: Zap,
+      icon: Lightning,
       text: 'As fast as AI'
     },
     {
