@@ -63,16 +63,27 @@
 @layer base {
   * {
     @apply border-border;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply bg-background text-foreground font-inter;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl;
+    @apply bg-white/20 backdrop-blur-md border border-white/30 rounded-xl;
   }
   
   .neumorphic-btn {
@@ -94,16 +105,12 @@
   }
   
   .section-padding {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-6 sm:px-8 lg:px-12;
   }
   
   .container-width {
     @apply max-w-7xl mx-auto;
   }
-}
-
-.scroll-smooth {
-  scroll-behavior: smooth;
 }
 
 /* Custom animations */
@@ -120,4 +127,17 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
+}
+
+/* Remove any potential conflicting margins */
+section {
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+p {
+  margin: 0;
 }

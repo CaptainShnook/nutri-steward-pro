@@ -25,15 +25,15 @@ const Navigation = () => {
   return (
     <>
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/90 backdrop-blur-lg border-b border-white/20' : 'bg-transparent'
+        isScrolled ? 'bg-white/95 backdrop-blur-lg border-b border-gray-200/50 shadow-sm' : 'bg-transparent'
       }`}>
         <div className="container-width section-padding">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">N</span>
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">N</span>
               </div>
-              <span className="text-xl font-semibold tracking-tight">NutriSteward</span>
+              <span className="text-2xl font-semibold tracking-tight text-gray-900">NutriSteward</span>
             </div>
             
             {/* Desktop Navigation */}
@@ -52,7 +52,7 @@ const Navigation = () => {
               </button>
               <button 
                 onClick={() => scrollToSection('waitlist')}
-                className="neumorphic-btn text-sm"
+                className="neumorphic-btn text-sm px-6 py-2"
               >
                 Join Waitlist
               </button>
@@ -74,7 +74,7 @@ const Navigation = () => {
         isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-        <div className={`absolute right-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl border-l border-white/20 transform transition-transform duration-300 ${
+        <div className={`absolute right-0 top-0 h-full w-80 bg-white/95 backdrop-blur-xl border-l border-gray-200/50 transform transition-transform duration-300 ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}>
           <div className="p-6">
