@@ -21,8 +21,8 @@ const HeroSection = () => {
             </h1>
             
             <div className="text-lg md:text-xl text-gray-900 leading-relaxed mb-8 space-y-3 max-w-4xl mx-auto">
-              <p>Want to build plans in seconds, keep clients consistent with flexible meals,</p>
-              <p>know exactly what they eat each day, and scale your business faster?</p>
+              <p>Build plans in seconds, keep clients consistent with flexible meals,</p>
+              <p>know exactly what they eat each day, and scale your business faster</p>
             </div>
 
             <div className="space-y-4 mt-8">
@@ -31,7 +31,7 @@ const HeroSection = () => {
                 className="bg-primary-500 text-white font-medium rounded-lg px-8 py-4 text-lg transition-all duration-300 ease-out hover:transform hover:scale-105 hover:shadow-xl inline-flex items-center gap-2 hover:bg-primary-600"
               >
                 <Fire size={20} weight="fill" />
-                Join the Waitlist — Only 50 Spots Available
+                Join the Waitlist
               </button>
               
               <p className="text-sm text-gray-600">
