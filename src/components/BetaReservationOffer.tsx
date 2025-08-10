@@ -54,7 +54,7 @@ const BetaReservationOffer = () => {
       <div className="max-w-2xl mx-auto">
         <div className="glass-card p-8 text-center">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle size={32} weight="fill" className="text-white" />
+            <CheckCircle size={32} className="text-white" />
           </div>
           
           <h2 className="text-3xl font-light tracking-tight text-gray-900 mb-4">
