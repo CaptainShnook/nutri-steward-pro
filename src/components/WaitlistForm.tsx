@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle, Copy } from 'phosphor-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeInput, validateEmail, validateTextLength, validateName } from '@/utils/validation';
 import { getReferralLink, getAppConfig } from '@/utils/config';
+import BetaReservationOffer from './BetaReservationOffer';
 
 interface FormData {
   problem: string;
@@ -19,6 +19,7 @@ interface FormData {
 const WaitlistForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showBetaOffer, setShowBetaOffer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Partial<FormData>>({});
   const { toast } = useToast();
@@ -151,6 +152,10 @@ const WaitlistForm = () => {
         });
       } else {
         setIsSubmitted(true);
+        // Show beta offer after successful submission
+        setTimeout(() => {
+          setShowBetaOffer(true);
+        }, 2000);
         toast({
           title: "Successfully Joined!",
           description: "You've been added to the waitlist. Check your email for confirmation.",
@@ -230,6 +235,16 @@ const WaitlistForm = () => {
         return false;
     }
   };
+
+  if (showBetaOffer) {
+    return (
+      <section id="waitlist-form" className="py-20 bg-white">
+        <div className="container-width section-padding">
+          <BetaReservationOffer />
+        </div>
+      </section>
+    );
+  }
 
   if (isSubmitted) {
     return (
