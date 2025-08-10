@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle, Copy } from 'phosphor-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeInput, validateEmail, validateTextLength, validateName } from '@/utils/validation';
+import { getReferralLink, getAppConfig } from '@/utils/config';
 
 interface FormData {
   problem: string;
@@ -18,7 +20,10 @@ const WaitlistForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Partial<FormData>>({});
   const { toast } = useToast();
+  const config = getAppConfig();
+  
   const [formData, setFormData] = useState<FormData>({
     problem: '',
     feature: '',
@@ -42,7 +47,70 @@ const WaitlistForm = () => {
     'Something else'
   ];
 
+  const validateCurrentStep = (): boolean => {
+    const errors: Partial<FormData> = {};
+    let isValid = true;
+
+    switch (steps[currentStep]) {
+      case 'problem':
+        if (!formData.problem.trim()) {
+          errors.problem = 'Please describe your biggest challenge';
+          isValid = false;
+        } else if (!validateTextLength(formData.problem, config.maxTextLength)) {
+          errors.problem = `Please keep your response under ${config.maxTextLength} characters`;
+          isValid = false;
+        }
+        break;
+        
+      case 'feature':
+        if (!formData.feature.trim()) {
+          errors.feature = 'Please select a feature';
+          isValid = false;
+        }
+        break;
+        
+      case 'goals':
+        if (!formData.goals.trim()) {
+          errors.goals = 'Please share your goals';
+          isValid = false;
+        } else if (!validateTextLength(formData.goals, config.maxTextLength)) {
+          errors.goals = `Please keep your response under ${config.maxTextLength} characters`;
+          isValid = false;
+        }
+        break;
+        
+      case 'pricing':
+        if (!formData.pricing.trim()) {
+          errors.pricing = 'Please enter your expected pricing';
+          isValid = false;
+        }
+        break;
+        
+      case 'contact':
+        if (!validateName(formData.firstName)) {
+          errors.firstName = 'Please enter a valid first name';
+          isValid = false;
+        }
+        if (!validateName(formData.lastName)) {
+          errors.lastName = 'Please enter a valid last name';
+          isValid = false;
+        }
+        if (!validateEmail(formData.email)) {
+          errors.email = 'Please enter a valid email address';
+          isValid = false;
+        }
+        break;
+    }
+
+    setValidationErrors(errors);
+    return isValid;
+  };
+
   const handleNext = async () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -51,21 +119,28 @@ const WaitlistForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (!validateCurrentStep()) {
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
+      // Sanitize all text inputs before submission
+      const sanitizedData = {
+        problem: sanitizeInput(formData.problem),
+        feature: sanitizeInput(formData.feature),
+        goals: sanitizeInput(formData.goals),
+        pricing: sanitizeInput(formData.pricing),
+        first_name: sanitizeInput(formData.firstName),
+        last_name: sanitizeInput(formData.lastName),
+        email: formData.email.toLowerCase().trim(), // Email doesn't need HTML sanitization
+        referral_code: generateReferralCode()
+      };
+
       const { error } = await supabase
         .from('waitlist_submissions')
-        .insert({
-          problem: formData.problem,
-          feature: formData.feature,
-          goals: formData.goals,
-          pricing: formData.pricing,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          referral_code: generateReferralCode()
-        });
+        .insert(sanitizedData);
 
       if (error) {
         console.error('Submission error:', error);
@@ -94,22 +169,28 @@ const WaitlistForm = () => {
   };
 
   const generateReferralCode = () => {
-    return `${formData.firstName.toLowerCase()}-${Date.now().toString(36)}`;
+    const sanitizedFirstName = sanitizeInput(formData.firstName).toLowerCase();
+    return `${sanitizedFirstName}-${Date.now().toString(36)}`;
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      setValidationErrors({}); // Clear validation errors when going back
     }
   };
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear validation error for this field when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const copyReferralLink = async () => {
     const referralCode = generateReferralCode();
-    const referralLink = `https://nutristeward.com/ref/${referralCode}`;
+    const referralLink = getReferralLink(referralCode);
     
     try {
       await navigator.clipboard.writeText(referralLink);
@@ -132,18 +213,19 @@ const WaitlistForm = () => {
       case 'intro':
         return true;
       case 'problem':
-        return formData.problem.trim().length > 0;
+        return formData.problem.trim().length > 0 && 
+               validateTextLength(formData.problem, config.maxTextLength);
       case 'feature':
         return formData.feature.trim().length > 0;
       case 'goals':
-        return formData.goals.trim().length > 0;
+        return formData.goals.trim().length > 0 && 
+               validateTextLength(formData.goals, config.maxTextLength);
       case 'pricing':
         return formData.pricing.trim().length > 0;
       case 'contact':
-        return formData.firstName.trim().length > 0 && 
-               formData.lastName.trim().length > 0 && 
-               formData.email.trim().length > 0 &&
-               /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+        return validateName(formData.firstName) && 
+               validateName(formData.lastName) && 
+               validateEmail(formData.email);
       default:
         return false;
     }
@@ -218,10 +300,19 @@ const WaitlistForm = () => {
             <textarea
               value={formData.problem}
               onChange={(e) => updateFormData('problem', e.target.value)}
-              className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${
+                validationErrors.problem ? 'border-red-500' : 'border-gray-200'
+              }`}
               rows={4}
               placeholder="Describe your biggest challenge..."
+              maxLength={config.maxTextLength}
             />
+            {validationErrors.problem && (
+              <p className="text-red-500 text-sm mt-2">{validationErrors.problem}</p>
+            )}
+            <p className="text-gray-500 text-sm mt-2">
+              {formData.problem.length}/{config.maxTextLength} characters
+            </p>
           </div>
         );
 
@@ -251,9 +342,13 @@ const WaitlistForm = () => {
                   placeholder="Please specify..."
                   className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent mt-3"
                   onChange={(e) => updateFormData('feature', `Something else: ${e.target.value}`)}
+                  maxLength={200}
                 />
               )}
             </div>
+            {validationErrors.feature && (
+              <p className="text-red-500 text-sm mt-2">{validationErrors.feature}</p>
+            )}
           </div>
         );
 
@@ -266,10 +361,19 @@ const WaitlistForm = () => {
             <textarea
               value={formData.goals}
               onChange={(e) => updateFormData('goals', e.target.value)}
-              className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none ${
+                validationErrors.goals ? 'border-red-500' : 'border-gray-200'
+              }`}
               rows={4}
               placeholder="Share your goals and expectations..."
+              maxLength={config.maxTextLength}
             />
+            {validationErrors.goals && (
+              <p className="text-red-500 text-sm mt-2">{validationErrors.goals}</p>
+            )}
+            <p className="text-gray-500 text-sm mt-2">
+              {formData.goals.length}/{config.maxTextLength} characters
+            </p>
           </div>
         );
 
@@ -283,9 +387,15 @@ const WaitlistForm = () => {
               type="text"
               value={formData.pricing}
               onChange={(e) => updateFormData('pricing', e.target.value)}
-              className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                validationErrors.pricing ? 'border-red-500' : 'border-gray-200'
+              }`}
               placeholder="$X per month"
+              maxLength={50}
             />
+            {validationErrors.pricing && (
+              <p className="text-red-500 text-sm mt-2">{validationErrors.pricing}</p>
+            )}
           </div>
         );
 
@@ -296,31 +406,55 @@ const WaitlistForm = () => {
               Almost done! Just need your contact information.
             </h3>
             <div className="grid md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => updateFormData('firstName', e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="First Name"
-                required
-              />
-              <input
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => updateFormData('lastName', e.target.value)}
-                className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Last Name"
-                required
-              />
+              <div>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => updateFormData('firstName', e.target.value)}
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                    validationErrors.firstName ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                  placeholder="First Name"
+                  maxLength={config.maxNameLength}
+                  required
+                />
+                {validationErrors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.firstName}</p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => updateFormData('lastName', e.target.value)}
+                  className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                    validationErrors.lastName ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                  placeholder="Last Name"
+                  maxLength={config.maxNameLength}
+                  required
+                />
+                {validationErrors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{validationErrors.lastName}</p>
+                )}
+              </div>
             </div>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => updateFormData('email', e.target.value)}
-              className="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent mt-4"
-              placeholder="Email Address"
-              required
-            />
+            <div className="mt-4">
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => updateFormData('email', e.target.value)}
+                className={`w-full p-4 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  validationErrors.email ? 'border-red-500' : 'border-gray-200'
+                }`}
+                placeholder="Email Address"
+                maxLength={254}
+                required
+              />
+              {validationErrors.email && (
+                <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+              )}
+            </div>
           </div>
         );
 
