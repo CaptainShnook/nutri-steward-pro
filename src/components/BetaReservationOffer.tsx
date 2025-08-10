@@ -1,52 +1,24 @@
 
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, Users, Clock, Star, Zap } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { ArrowRight, CheckCircle, Users, Clock, Star, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const BetaReservationOffer = () => {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isReserved, setIsReserved] = useState(false);
-  const { toast } = useToast();
 
   const spotsRemaining = 46;
   const totalSpots = 100;
 
-  const handleReserveSpot = async () => {
-    setIsProcessing(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('create-beta-payment', {
-        body: { amount: 100 } // $1.00 in cents
-      });
+  const handleReserveSpot = () => {
+    // Redirect to the Stripe checkout link
+    window.open('https://buy.stripe.com/fZu3cu9md5pi8xz1nYfAc00', '_blank');
+    // Set reserved state to show success message
+    setIsReserved(true);
+  };
 
-      if (error) {
-        console.error('Payment creation error:', error);
-        toast({
-          title: "Payment Failed",
-          description: "Unable to create payment session. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
-        // Set reserved state to show success message
-        setIsReserved(true);
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleNotInterested = () => {
+    // Redirect back to homepage
+    window.location.href = '/';
   };
 
   if (isReserved) {
@@ -168,16 +140,25 @@ const BetaReservationOffer = () => {
           </p>
         </div>
 
-        {/* CTA Button */}
-        <div className="text-center mb-6">
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <Button 
             onClick={handleReserveSpot}
-            disabled={isProcessing}
             size="lg"
-            className="w-full sm:w-auto px-8 py-4 text-lg font-medium"
+            className="px-8 py-4 text-lg font-medium"
           >
-            {isProcessing ? 'Processing...' : 'Reserve My Spot For $1'}
+            Reserve My Spot For $1
             <ArrowRight size={20} className="ml-2" />
+          </Button>
+          
+          <Button 
+            onClick={handleNotInterested}
+            variant="outline"
+            size="lg"
+            className="px-8 py-4 text-lg font-medium flex items-center gap-2"
+          >
+            <X size={20} />
+            Not Interested
           </Button>
         </div>
 
