@@ -22,7 +22,7 @@ const Navigation = () => {
             <img 
               src="/lovable-uploads/48c738e3-8956-498f-907d-8181bf881190.png" 
               alt="NutriSteward" 
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
           </div>
 
