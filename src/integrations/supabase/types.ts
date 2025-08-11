@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      beta_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          paid_at: string | null
+          payment_email: string
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string
+          updated_at: string
+          waitlist_submission_id: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_email: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id: string
+          updated_at?: string
+          waitlist_submission_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_email?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string
+          updated_at?: string
+          waitlist_submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_payments_waitlist_submission_id_fkey"
+            columns: ["waitlist_submission_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist_submissions: {
         Row: {
           created_at: string
@@ -21,8 +71,11 @@ export type Database = {
           feature: string | null
           first_name: string
           goals: string | null
+          has_paid: boolean | null
           id: string
           last_name: string
+          paid_at: string | null
+          payment_session_id: string | null
           pricing: string | null
           problem: string | null
           referral_code: string | null
@@ -34,8 +87,11 @@ export type Database = {
           feature?: string | null
           first_name: string
           goals?: string | null
+          has_paid?: boolean | null
           id?: string
           last_name: string
+          paid_at?: string | null
+          payment_session_id?: string | null
           pricing?: string | null
           problem?: string | null
           referral_code?: string | null
@@ -47,8 +103,11 @@ export type Database = {
           feature?: string | null
           first_name?: string
           goals?: string | null
+          has_paid?: boolean | null
           id?: string
           last_name?: string
+          paid_at?: string | null
+          payment_session_id?: string | null
           pricing?: string | null
           problem?: string | null
           referral_code?: string | null

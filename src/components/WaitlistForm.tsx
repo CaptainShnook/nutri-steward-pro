@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle, Copy } from 'phosphor-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +22,7 @@ const WaitlistForm = () => {
   const [showBetaOffer, setShowBetaOffer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Partial<FormData>>({});
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const { toast } = useToast();
   const config = getAppConfig();
   
@@ -140,9 +140,11 @@ const WaitlistForm = () => {
         referral_code: generateReferralCode()
       };
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('waitlist_submissions')
-        .insert(sanitizedData);
+        .insert(sanitizedData)
+        .select('id')
+        .single();
 
       if (error) {
         console.error('Submission error:', error);
@@ -152,6 +154,7 @@ const WaitlistForm = () => {
           variant: "destructive"
         });
       } else {
+        setSubmissionId(data.id);
         setIsSubmitted(true);
         // Show beta offer after successful submission
         setTimeout(() => {
@@ -241,7 +244,10 @@ const WaitlistForm = () => {
     return (
       <section id="waitlist-form" className="py-20 bg-white">
         <div className="container-width section-padding">
-          <BetaReservationOffer />
+          <BetaReservationOffer 
+            submissionId={submissionId || undefined}
+            userEmail={formData.email}
+          />
         </div>
       </section>
     );
