@@ -91,7 +91,7 @@ const BetaReservationOffer = () => {
         <div className="mb-8">
           <p className="text-lg text-gray-700 mb-6 text-center">
             Lock in your place in the first wave of coaches shaping NutriSteward and get over 
-            <span className="font-semibold text-primary-600"> $550 in value</span>:
+            <span className="font-semibold text-primary-600"> $300 in value</span>:
           </p>
           
           <div className="space-y-4">
@@ -121,13 +121,6 @@ const BetaReservationOffer = () => {
                 <CheckCircle size={14} className="text-primary-600" />
               </div>
               <span className="text-gray-700">Priority onboarding and support at launch</span>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Star size={14} className="text-primary-600" />
-              </div>
-              <span className="text-gray-700">Exclusive beta-only training</span>
             </div>
           </div>
         </div>
@@ -164,7 +157,7 @@ const BetaReservationOffer = () => {
 
         {/* Urgency Message */}
         <p className="text-center text-sm text-gray-600">
-          Once the {totalSpots} spots are gone, this page closes and the $550+ bonus disappears forever.
+          Once the {totalSpots} spots are gone, this page closes and the $300+ bonus disappears forever.
         </p>
       </div>
     </div>
