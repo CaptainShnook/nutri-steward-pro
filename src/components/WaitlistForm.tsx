@@ -335,7 +335,7 @@ const WaitlistForm = () => {
         return (
           <div>
             <h3 className="text-2xl font-light text-gray-900 mb-6">
-              Which NutriSteward feature are you most excited about?
+              Which feature are you most excited about?
             </h3>
             <div className="space-y-3">
               {featureOptions.map((option, index) => (
@@ -396,7 +396,7 @@ const WaitlistForm = () => {
         return (
           <div>
             <h3 className="text-2xl font-light text-gray-900 mb-6">
-              What would you honestly expect to pay monthly for NutriSteward?
+              What would you expect to pay monthly if it resolved some of your problems?
             </h3>
             <input
               type="text"
