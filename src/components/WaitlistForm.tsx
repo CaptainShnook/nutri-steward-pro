@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle, Copy } from 'phosphor-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -310,7 +311,7 @@ const WaitlistForm = () => {
         return (
           <div>
             <h3 className="text-2xl font-light text-gray-900 mb-6">
-              If NutriSteward could completely remove one key problem from your nutrition coaching, what would it be?
+              If you could completely remove one key problem from your nutrition coaching, what would it be?
             </h3>
             <textarea
               value={formData.problem}
