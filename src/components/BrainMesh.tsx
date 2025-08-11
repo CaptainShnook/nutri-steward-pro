@@ -1,11 +1,10 @@
-
 import React, { useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 const Brain = () => {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Group>(null);
   
   // Create a brain-like geometry using multiple spheres
   const brainGeometry = useMemo(() => {
