@@ -13,9 +13,9 @@ import BrainMesh from '../components/BrainMesh';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 scroll-smooth relative overflow-hidden">
-      {/* Radial gradient overlay */}
-      <div className="fixed inset-0 bg-gradient-radial from-blue-100/30 via-transparent to-blue-200/20 pointer-events-none" />
+    <div className="min-h-screen scroll-smooth relative overflow-hidden">
+      {/* Radial gradient background */}
+      <div className="fixed inset-0 bg-gradient-radial from-blue-100/50 via-white/90 to-blue-200/40 pointer-events-none" />
       
       {/* 3D Brain Mesh Background */}
       <BrainMesh />
