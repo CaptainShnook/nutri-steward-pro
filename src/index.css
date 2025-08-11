@@ -111,6 +111,10 @@
   .container-width {
     @apply max-w-7xl mx-auto;
   }
+
+  .bg-gradient-radial {
+    background: radial-gradient(circle at center, var(--tw-gradient-stops));
+  }
 }
 
 /* Custom animations */
