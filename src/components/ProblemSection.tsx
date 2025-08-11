@@ -4,7 +4,7 @@ import { CheckCircle, XCircle } from 'phosphor-react';
 
 const ProblemSection = () => {
   return (
-    <section className="py-16 backdrop-blur-sm relative">
+    <section className="py-16 bg-white">
       <div className="container-width section-padding">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
@@ -18,7 +18,7 @@ const ProblemSection = () => {
             <p className="text-lg mb-4">You know clients get better results when they follow one.</p>
             <p className="text-lg mb-6 text-gray-900 font-medium">So why do so many coaches skip them?</p>
 
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/40">
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
               <div className="flex items-start gap-4 mb-4">
                 <XCircle size={20} weight="fill" className="text-red-500 mt-1 flex-shrink-0" />
                 <div>
@@ -30,7 +30,7 @@ const ProblemSection = () => {
               <div className="flex items-start gap-4">
                 <XCircle size={20} weight="fill" className="text-red-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-base font-medium text-gray-900 mb-2">Building a plan is tedious, manual, and trust-driven.</h3>
+                  <h3 className="text-base font-medium text-gray-900 mb-2">Building a plan is manual, laborious, and trust-driven.</h3>
                   <p className="text-sm text-gray-600">
                     Personalizing around food preferences, macros, and schedules takes hours. 
                     Once it is sent, you are relying on clients to follow it exactly, which means every meal, 
