@@ -16,8 +16,8 @@ const HeroSection = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight text-primary-500 mb-6 leading-tight">
-              Eliminate the most time-consuming
-              <span className="block font-medium mt-2">part of nutrition coaching</span>
+              Cut Nutrition Coaching Workload
+              <span className="block font-medium mt-2">by 90%</span>
             </h1>
             
             <div className="text-lg md:text-xl text-gray-900 leading-relaxed mb-8 space-y-3 max-w-4xl mx-auto">

@@ -30,7 +30,7 @@ const ProblemSection = () => {
               <div className="flex items-start gap-4">
                 <XCircle size={20} weight="fill" className="text-red-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-base font-medium text-gray-900 mb-2">Building a plan is manual, tedious, and trust-driven.</h3>
+                  <h3 className="text-base font-medium text-gray-900 mb-2">Building a plan is manual, laborious, and trust-driven.</h3>
                   <p className="text-sm text-gray-600">
                     Personalizing around food preferences, macros, and schedules takes hours. 
                     Once it is sent, you are relying on clients to follow it exactly, which means every meal, 
