@@ -1,9 +1,47 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle, Users, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const BetaSuccess = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      if (sessionId) {
+        // Check if payment was successful
+        const { data } = await supabase
+          .from('beta_payments')
+          .select('status')
+          .eq('stripe_session_id', sessionId)
+          .single();
+        
+        if (data?.status === 'paid') {
+          setPaymentVerified(true);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    verifyPayment();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verifying your payment...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center">
@@ -13,12 +51,14 @@ const BetaSuccess = () => {
           </div>
           
           <h1 className="text-4xl font-light tracking-tight text-gray-900 mb-4">
-            Welcome to the NutriSteward Beta!
+            {paymentVerified ? "Welcome to the NutriSteward Beta!" : "Thank You for Your Interest!"}
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            Your beta spot has been reserved successfully. You're now part of an exclusive group 
-            of coaches who will shape the future of nutrition coaching.
+            {paymentVerified 
+              ? "Your beta spot has been reserved successfully. You're now part of an exclusive group of coaches who will shape the future of nutrition coaching."
+              : "Your application has been received. If you completed payment, it may take a few moments to process."
+            }
           </p>
           
           <div className="bg-primary-50 rounded-lg p-6 mb-8">

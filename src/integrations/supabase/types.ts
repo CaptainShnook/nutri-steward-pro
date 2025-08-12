@@ -21,8 +21,11 @@ export type Database = {
           feature: string | null
           first_name: string
           goals: string | null
+          has_paid: boolean | null
           id: string
           last_name: string
+          paid_at: string | null
+          payment_session_id: string | null
           pricing: string | null
           problem: string | null
           referral_code: string | null
@@ -34,8 +37,11 @@ export type Database = {
           feature?: string | null
           first_name: string
           goals?: string | null
+          has_paid?: boolean | null
           id?: string
           last_name: string
+          paid_at?: string | null
+          payment_session_id?: string | null
           pricing?: string | null
           problem?: string | null
           referral_code?: string | null
@@ -47,8 +53,11 @@ export type Database = {
           feature?: string | null
           first_name?: string
           goals?: string | null
+          has_paid?: boolean | null
           id?: string
           last_name?: string
+          paid_at?: string | null
+          payment_session_id?: string | null
           pricing?: string | null
           problem?: string | null
           referral_code?: string | null

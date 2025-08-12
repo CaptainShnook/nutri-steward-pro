@@ -2,62 +2,53 @@
 import React, { useState } from 'react';
 import { ArrowRight, CheckCircle, Users, Clock, Star, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-const BetaReservationOffer = () => {
-  const [isReserved, setIsReserved] = useState(false);
+interface BetaReservationOfferProps {
+  waitlistSubmissionId: string;
+}
+
+const BetaReservationOffer = ({ waitlistSubmissionId }: BetaReservationOfferProps) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
   const spotsRemaining = 46;
   const totalSpots = 100;
 
-  const handleReserveSpot = () => {
-    // Redirect to the Stripe checkout link
-    window.open('https://buy.stripe.com/fZu3cu9md5pi8xz1nYfAc00', '_blank');
-    // Set reserved state to show success message
-    setIsReserved(true);
+  const handleReserveSpot = async () => {
+    setIsProcessing(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-beta-payment', {
+        body: { waitlistSubmissionId }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Error",
+        description: "Unable to process payment. Please try again.",
+        variant: "destructive"
+      });
+      setIsProcessing(false);
+    }
   };
 
   const handleNotInterested = () => {
     // Redirect back to homepage
     window.location.href = '/';
   };
-
-  if (isReserved) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="glass-card p-8 text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle size={32} className="text-white" />
-          </div>
-          
-          <h2 className="text-3xl font-light tracking-tight text-gray-900 mb-4">
-            Your Beta Spot is Being Reserved
-          </h2>
-          
-          <p className="text-gray-600 mb-8 leading-relaxed">
-            Complete your $1 payment in the new tab to secure your spot. Once confirmed, 
-            you'll get access to our exclusive beta community.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              onClick={() => window.open('https://discord.gg/nutristeward', '_blank')}
-              className="flex items-center gap-2"
-              variant="outline"
-            >
-              Join Discord Community
-            </Button>
-            <Button 
-              onClick={() => window.open('https://instagram.com/nutristeward', '_blank')}
-              className="flex items-center gap-2"
-              variant="outline"
-            >
-              Follow on Instagram
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -137,17 +128,19 @@ const BetaReservationOffer = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <Button 
             onClick={handleReserveSpot}
+            disabled={isProcessing}
             size="lg"
             className="px-8 py-4 text-lg font-medium"
           >
-            Reserve My Spot For $1
-            <ArrowRight size={20} className="ml-2" />
+            {isProcessing ? 'Processing...' : 'Reserve My Spot For $1'}
+            {!isProcessing && <ArrowRight size={20} className="ml-2" />}
           </Button>
           
           <Button 
             onClick={handleNotInterested}
             variant="outline"
             size="lg"
+            disabled={isProcessing}
             className="px-8 py-4 text-lg font-medium flex items-center gap-2"
           >
             <X size={20} />
