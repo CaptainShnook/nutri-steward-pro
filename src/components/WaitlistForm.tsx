@@ -137,8 +137,11 @@ const WaitlistForm = () => {
         first_name: sanitizeInput(formData.firstName),
         last_name: sanitizeInput(formData.lastName),
         email: formData.email.toLowerCase().trim(),
-        referral_code: generateReferralCode()
+        referral_code: generateReferralCode(),
+        user_id: null // Explicitly set to null for anonymous submissions
       };
+
+      console.log('Submitting waitlist data:', sanitizedData);
 
       const { data, error } = await supabase
         .from('waitlist_submissions')
@@ -154,6 +157,7 @@ const WaitlistForm = () => {
           variant: "destructive"
         });
       } else {
+        console.log('Submission successful:', data);
         setWaitlistSubmissionId(data.id);
         setIsSubmitted(true);
         // Show beta offer after successful submission
