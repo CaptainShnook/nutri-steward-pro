@@ -20,18 +20,25 @@ const BetaReservationOffer = ({ waitlistSubmissionId }: BetaReservationOfferProp
     setIsProcessing(true);
     
     try {
+      console.log('Calling create-beta-payment with ID:', waitlistSubmissionId);
+      
       const { data, error } = await supabase.functions.invoke('create-beta-payment', {
         body: { waitlistSubmissionId }
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) {
+        console.error('Edge function error:', error);
         throw error;
       }
 
       if (data?.url) {
+        console.log('Redirecting to:', data.url);
         // Redirect to Stripe checkout
         window.location.href = data.url;
       } else {
+        console.error('No checkout URL received:', data);
         throw new Error('No checkout URL received');
       }
     } catch (error) {

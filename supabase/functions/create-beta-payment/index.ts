@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.54.0";
 
 const corsHeaders = {
@@ -26,7 +26,10 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
     );
 
-    const { waitlistSubmissionId } = await req.json();
+    const requestData = await req.json();
+    const { waitlistSubmissionId } = requestData;
+
+    console.log('Received request with waitlistSubmissionId:', waitlistSubmissionId);
 
     if (!waitlistSubmissionId) {
       return new Response(
@@ -46,6 +49,7 @@ serve(async (req) => {
       .single();
 
     if (submissionError || !submission) {
+      console.error('Error fetching submission:', submissionError);
       return new Response(
         JSON.stringify({ error: "Waitlist submission not found" }),
         {
@@ -55,11 +59,20 @@ serve(async (req) => {
       );
     }
 
-    // Create a one-time payment session for beta reservation using your price ID
+    console.log('Found submission for:', submission.email);
+
+    // Create a one-time payment session for beta reservation
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price: "prod_SqKtuA6zNHoARP", // Using your actual price ID
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "NutriSteward Beta Reservation",
+              description: "Reserve your spot in the NutriSteward beta program"
+            },
+            unit_amount: 100, // $1.00 in cents
+          },
           quantity: 1,
         },
       ],
@@ -73,14 +86,20 @@ serve(async (req) => {
       }
     });
 
-    // Update waitlist submission with session ID and mark as having attempted payment
-    await supabase
+    console.log('Created Stripe session:', session.id);
+
+    // Update waitlist submission with session ID
+    const { error: updateError } = await supabase
       .from('waitlist_submissions')
       .update({ 
         payment_session_id: session.id,
-        has_paid: false // Will be updated to true by webhook when payment succeeds
+        has_paid: false
       })
       .eq('id', waitlistSubmissionId);
+
+    if (updateError) {
+      console.error('Error updating submission:', updateError);
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
