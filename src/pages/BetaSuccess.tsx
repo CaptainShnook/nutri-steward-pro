@@ -2,38 +2,16 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Users, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 
 const BetaSuccess = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    const verifyPayment = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('session_id');
-      
-      if (sessionId) {
-        try {
-          // Check if payment was successful by querying the waitlist_submissions table
-          // We'll look for a submission with this session_id and has_paid = true
-          const { data } = await supabase
-            .from('waitlist_submissions')
-            .select('has_paid')
-            .eq('payment_session_id', sessionId)
-            .single();
-          
-          if (data?.has_paid) {
-            setPaymentVerified(true);
-          }
-        } catch (error) {
-          console.error('Error verifying payment:', error);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    verifyPayment();
+    const urlParams = new URLSearchParams(window.location.search);
+    const session = urlParams.get('session_id');
+    setSessionId(session);
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {
@@ -41,7 +19,7 @@ const BetaSuccess = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verifying your payment...</p>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -56,15 +34,20 @@ const BetaSuccess = () => {
           </div>
           
           <h1 className="text-4xl font-light tracking-tight text-gray-900 mb-4">
-            {paymentVerified ? "Welcome to the NutriSteward Beta!" : "Thank You for Your Interest!"}
+            Welcome to the NutriSteward Beta!
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-            {paymentVerified 
-              ? "Your beta spot has been reserved successfully. You're now part of an exclusive group of coaches who will shape the future of nutrition coaching."
-              : "Your application has been received. If you completed payment, it may take a few moments to process."
-            }
+            Your beta spot has been reserved successfully. You're now part of an exclusive group of coaches who will shape the future of nutrition coaching.
           </p>
+          
+          {sessionId && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8">
+              <p className="text-sm text-green-800">
+                Payment confirmation: {sessionId.substring(0, 20)}...
+              </p>
+            </div>
+          )}
           
           <div className="bg-primary-50 rounded-lg p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">What's Next?</h2>

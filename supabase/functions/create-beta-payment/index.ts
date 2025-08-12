@@ -55,18 +55,11 @@ serve(async (req) => {
       );
     }
 
-    // Create a one-time payment session for beta reservation
+    // Create a one-time payment session for beta reservation using your price ID
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: { 
-              name: "NutriSteward Beta Spot Reservation",
-              description: "Reserve your spot in the NutriSteward beta program"
-            },
-            unit_amount: 100, // $1.00 in cents
-          },
+          price: "prod_SqKtuA6zNHoARP", // Using your actual price ID
           quantity: 1,
         },
       ],
@@ -80,25 +73,13 @@ serve(async (req) => {
       }
     });
 
-    // Store the beta payment record
-    const { error: paymentError } = await supabase
-      .from('beta_payments')
-      .insert({
-        waitlist_submission_id: waitlistSubmissionId,
-        stripe_session_id: session.id,
-        amount: 100,
-        currency: 'usd',
-        status: 'pending'
-      });
-
-    if (paymentError) {
-      console.error('Error storing payment record:', paymentError);
-    }
-
-    // Update waitlist submission with session ID
+    // Update waitlist submission with session ID and mark as having attempted payment
     await supabase
       .from('waitlist_submissions')
-      .update({ payment_session_id: session.id })
+      .update({ 
+        payment_session_id: session.id,
+        has_paid: false // Will be updated to true by webhook when payment succeeds
+      })
       .eq('id', waitlistSubmissionId);
 
     return new Response(JSON.stringify({ url: session.url }), {
