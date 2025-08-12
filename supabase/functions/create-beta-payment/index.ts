@@ -1,7 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.54.0";
+import Stripe from "https://esm.sh/stripe@14.21.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,46 +19,7 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Initialize Supabase
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
-    );
-
-    const requestData = await req.json();
-    const { waitlistSubmissionId } = requestData;
-
-    console.log('Received request with waitlistSubmissionId:', waitlistSubmissionId);
-
-    if (!waitlistSubmissionId) {
-      return new Response(
-        JSON.stringify({ error: "waitlistSubmissionId is required" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        }
-      );
-    }
-
-    // Get the waitlist submission to include user details
-    const { data: submission, error: submissionError } = await supabase
-      .from('waitlist_submissions')
-      .select('first_name, last_name, email')
-      .eq('id', waitlistSubmissionId)
-      .single();
-
-    if (submissionError || !submission) {
-      console.error('Error fetching submission:', submissionError);
-      return new Response(
-        JSON.stringify({ error: "Waitlist submission not found" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 404,
-        }
-      );
-    }
-
-    console.log('Found submission for:', submission.email);
+    const { amount } = await req.json();
 
     // Create a one-time payment session for beta reservation
     const session = await stripe.checkout.sessions.create({
@@ -67,39 +27,22 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: "NutriSteward Beta Reservation",
+            product_data: { 
+              name: "NutriSteward Beta Spot Reservation",
               description: "Reserve your spot in the NutriSteward beta program"
             },
-            unit_amount: 100, // $1.00 in cents
+            unit_amount: amount || 100, // $1.00 in cents
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/beta-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get("origin")}/beta-success`,
       cancel_url: `${req.headers.get("origin")}/`,
-      customer_email: submission.email,
       metadata: {
-        type: "beta_reservation",
-        waitlist_submission_id: waitlistSubmissionId
+        type: "beta_reservation"
       }
     });
-
-    console.log('Created Stripe session:', session.id);
-
-    // Update waitlist submission with session ID
-    const { error: updateError } = await supabase
-      .from('waitlist_submissions')
-      .update({ 
-        payment_session_id: session.id,
-        has_paid: false
-      })
-      .eq('id', waitlistSubmissionId);
-
-    if (updateError) {
-      console.error('Error updating submission:', updateError);
-    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
