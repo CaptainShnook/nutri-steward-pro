@@ -14,15 +14,20 @@ const BetaSuccess = () => {
       const sessionId = urlParams.get('session_id');
       
       if (sessionId) {
-        // Check if payment was successful
-        const { data } = await supabase
-          .from('beta_payments')
-          .select('status')
-          .eq('stripe_session_id', sessionId)
-          .single();
-        
-        if (data?.status === 'paid') {
-          setPaymentVerified(true);
+        try {
+          // Check if payment was successful by querying the waitlist_submissions table
+          // We'll look for a submission with this session_id and has_paid = true
+          const { data } = await supabase
+            .from('waitlist_submissions')
+            .select('has_paid')
+            .eq('payment_session_id', sessionId)
+            .single();
+          
+          if (data?.has_paid) {
+            setPaymentVerified(true);
+          }
+        } catch (error) {
+          console.error('Error verifying payment:', error);
         }
       }
       setIsLoading(false);
