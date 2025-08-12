@@ -137,8 +137,7 @@ const WaitlistForm = () => {
         first_name: sanitizeInput(formData.firstName),
         last_name: sanitizeInput(formData.lastName),
         email: formData.email.toLowerCase().trim(),
-        referral_code: generateReferralCode(),
-        user_id: null // Explicitly set to null for anonymous submissions
+        referral_code: generateReferralCode()
       };
 
       console.log('Submitting waitlist data:', sanitizedData);
